@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Select
+        or</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+            background: #4f7df9;
+            background-size: 800% 800%;
+            animation: gradientAnimation 10s ease infinite;
+        }
+
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .food-selection {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .food-box {
+            width: 200px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: transform 0.3s, background-color 0.3s;
+            background-size: cover;
+            background-position: center;
+            color: white;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .food-box:hover, .food-box.selected {
+            transform: scale(1.05);
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .food-box p {
+            font-size: 18px;
+            margin: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        #veg-box {
+            background-image: url('./images/vegfood.jpeg'); /* Path to your Veg image */
+        }
+
+        #non-veg-box {
+            background-image: url('./images/nonvegfood.jpeg'); /* Path to your Non-Veg image */
+        }
+
+        #both-box {
+            background-image: url('./images/bothfood.jpeg'); /* Path to your Both image */
+        }
+
+        #food-container {
+            margin-top: 20px;
+        }
+
+        .loading {
+            font-size: 18px;
+            color: #333;
+        }
+
+        .food-item {
+            margin: 10px;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .food-item img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Select Food Type Which You Prefer For Your Diet Plan</h1>
+    <div class="food-selection">
+        <div class="food-box" id="veg-box" role="button" tabindex="0">
+            <p>Veg</p>
+        </div>
+        <div class="food-box" id="non-veg-box" role="button" tabindex="0">
+            <p>Non-Veg</p>
+        </div>
+        <div class="food-box" id="both-box" role="button" tabindex="0">
+            <p>Both</p>
+        </div>
+    </div>
+    <div id="food-container"></div>
+
+    <script>
+        const vegBox = document.getElementById('veg-box');
+        const nonVegBox = document.getElementById('non-veg-box');
+        const bothBox = document.getElementById('both-box');
+
+        document.querySelectorAll('.food-box').forEach(box => {
+            box.addEventListener('click', () => toggleSelection(box.id));
+        });
+
+        function toggleSelection(boxId) {
+            const foodType = boxId.split('-')[0];
+            if (foodType === 'veg') {
+                vegBox.classList.toggle('selected');
+                nonVegBox.classList.remove('selected');
+                bothBox.classList.remove('selected');
+            } else if (foodType === 'non') {
+                nonVegBox.classList.toggle('selected');
+                vegBox.classList.remove('selected');
+                bothBox.classList.remove('selected');
+            } else {
+                bothBox.classList.toggle('selected');
+                if (bothBox.classList.contains('selected')) {
+                    vegBox.classList.add('selected');
+                    nonVegBox.classList.add('selected');
+                } else {
+                    vegBox.classList.remove('selected');
+                    nonVegBox.classList.remove('selected');
+                }
+            }
+
+            fetchFoodItems();
+        }
+
+        function fetchFoodItems() {
+            let apiUrl;
+            if (vegBox.classList.contains('selected') && nonVegBox.classList.contains('selected')) {
+                apiUrl = 'https://www.themealdb.com/api/json/v1/1/filter.php?c=Vegetarian';
+            } else if (vegBox.classList.contains('selected')) {
+                apiUrl = 'https://www.themealdb.com/api/json/v1/1/filter.php?c=Vegetarian';
+            } else if (nonVegBox.classList.contains('selected')) {
+                apiUrl = 'https://www.themealdb.com/api/json/v1/1/filter.php?c=Chicken';
+            } else {
+                apiUrl = '';
+            }
+
+            const foodContainer = document.getElementById('food-container');
+            foodContainer.innerHTML = ''; // Clear previous results
+
+            if (apiUrl) {
+                foodContainer.innerHTML = '<p class="loading">Loading...</p>';
+                fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => displayFoodItems(data.meals))
+                .catch(error => {
+                    console.error('Error fetching food items:', error);
+                    foodContainer.innerHTML = '<p class="loading">Failed to load food items. Please try again.</p>';
+                });
+            }
+        }
+
+        function displayFoodItems(foodItems) {
+            const foodContainer = document.getElementById('food-container');
+            foodContainer.innerHTML = ''; // Clear previous results
+
+            foodItems.forEach(item => {
+                const foodDiv = document.createElement('div');
+                foodDiv.className = 'food-item';
+                foodDiv.innerHTML = `
+                    <img src="${item.strMealThumb}" alt="${item.strMeal}">
+                    <p>${item.strMeal}</p>
+                `;
+                foodContainer.appendChild(foodDiv);
+            });
+        }
+    </script>
+</body>
+</html>
